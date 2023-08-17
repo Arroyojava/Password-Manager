@@ -1,16 +1,20 @@
-# This is a sample Python script.
+from tkinter import *
 
-# Press F11 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+# ---------------------------- PASSWORD GENERATOR ------------------------------- #
 
+# ---------------------------- SAVE PASSWORD ------------------------------- #
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+# ---------------------------- UI SETUP ------------------------------- #
+# Window Config
+window = Tk()
+window.title('Password Manager')
+window.config(padx=20, pady=20)
 
+# Canvas / Background
+canvas = Canvas(width=200, height=200, highlightthickness=0)
+logo_img = PhotoImage(file='logo.png')
+canvas.create_image(100, 100, image=logo_img)
+canvas.grid(column=0, row=0)
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+window.eval('tk::PlaceWindow . Center')
+window.mainloop()
