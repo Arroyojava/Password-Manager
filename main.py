@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import messagebox
 from random import choice, randint, shuffle
 import pyperclip
+import json
 
 FONT_NAME = 'Calibri'
 SIZE = 13
@@ -32,30 +33,65 @@ def generate_password():
 
 
 # ---------------------------- SAVE PASSWORD ------------------------------- #
-def save_to_file():
-    website = website_entry.get()
-    email = email_username_entry.get()
-    password = password_entry.get()
-    pyperclip.copy(password)
-
-    if len(website) == 0 or len(password) == 0:
-        messagebox.showwarning('Oops', 'Fields cannot be left blank!')
-    else:
-        answer = messagebox.askokcancel('Complete', message=f'Data entered: '
-                                                            f'\nWebsite: {website}'
-                                                            f'\nEmail/Username: {email}'
-                                                            f'\nPassword: {password}'
-                                                            f'\nPassword has been saved to Clipboard'
-                                                            f'\nIs it ok to save?')
-        if answer:
-            with open("passwords.txt", "a") as data_file:
-                data_file.write(f'{website} | {email} | {password}\n')
-            clear_entries()
+def write_to_file(new_data):
+    with open('passwords.json', 'w') as data_file:
+        json.dump(new_data, data_file, indent=4)
 
 
 def clear_entries():
     website_entry.delete(0, END)
     password_entry.delete(0, END)
+
+
+def save_to_json():
+    website = website_entry.get()
+    email = email_username_entry.get()
+    password = password_entry.get()
+    new_data = {
+        website: {
+            'email': email,
+            'password': password
+        }
+    }
+    pyperclip.copy(password)
+
+    if len(website) == 0 or len(password) == 0:
+        messagebox.showwarning('Oops', 'Fields cannot be left blank!')
+    else:
+        try:
+            with open("passwords.json", "r") as data_file:
+                data = json.load(data_file)
+
+        except FileNotFoundError:
+            write_to_file(new_data)
+
+        else:
+            data.update(new_data)
+            write_to_file(data)
+
+        finally:
+            clear_entries()
+
+
+# ---------------------------- FIND PASSWORD ------------------------------- #
+def find_password():
+    website = website_entry.get()
+
+    try:
+        with open('passwords.json', 'r') as data_file:
+            entry = json.load(data_file)
+    except FileNotFoundError:
+        messagebox.showwarning('Error', 'Not Password File Found!')
+    else:
+        if website in entry:
+            email = entry[website]["email"]
+            password = entry[website]["password"]
+            messagebox.showinfo(website,
+                                f'Email/User: {email}\nPassword: {password}\n'
+                                f'Password copied to clipboard!')
+            pyperclip.copy(entry[website]["password"])
+        else:
+            messagebox.showwarning('None Found', f'No details for the {website} exist.')
 
 
 # ---------------------------- UI SETUP ------------------------------- #
@@ -81,22 +117,25 @@ password_label = Label(text='Password:', font=(FONT_NAME, SIZE))
 password_label.grid(column=0, row=3, sticky='E')
 
 # Entry
-website_entry = Entry(width=35, font=(FONT_NAME, SIZE))
+website_entry = Entry(width=20, font=(FONT_NAME, SIZE))
 website_entry.grid(column=1, row=1, sticky='w', padx=10, columnspan=2)
 website_entry.focus()
 
 email_username_entry = Entry(width=35, font=(FONT_NAME, SIZE))
 email_username_entry.grid(column=1, row=2, sticky='w', padx=10, columnspan=2)
 
-password_entry = Entry(width=19, font=(FONT_NAME, SIZE))
+password_entry = Entry(width=20, font=(FONT_NAME, SIZE))
 password_entry.grid(column=1, row=3, sticky='w', padx=10, )
 
 # Buttons
-add_button = Button(text='Add', width=35, font=(FONT_NAME, SIZE), command=save_to_file)
+add_button = Button(text='Add', width=35, font=(FONT_NAME, SIZE), command=save_to_json)
 add_button.grid(column=1, row=4, sticky='w', padx=10, columnspan=2)
 
-gen_password_button = Button(text='Generate Password', font=(FONT_NAME, 12), width=16, command=generate_password)
+gen_password_button = Button(text='Generate Password', font=(FONT_NAME, 11), width=16, command=generate_password)
 gen_password_button.grid(column=1, row=3, sticky='E', columnspan=2, padx=10)
+
+search_button = Button(text='Search', font=(FONT_NAME, 11), width=16, command=find_password)
+search_button.grid(column=1, row=1, sticky='E', columnspan=2, padx=10)
 
 # Main Loop and Center Window
 window.eval('tk::PlaceWindow . Center')
